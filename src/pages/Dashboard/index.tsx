@@ -27,7 +27,9 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     async function loadFoods(): Promise<void> {
-      // TODO LOAD FOODS
+      api.get('/foods').then(response => {
+        setFoods(response.data);
+      });
     }
 
     loadFoods();
@@ -37,7 +39,18 @@ const Dashboard: React.FC = () => {
     food: Omit<IFoodPlate, 'id' | 'available'>,
   ): Promise<void> {
     try {
-      // TODO ADD A NEW FOOD PLATE TO THE API
+      const { name, image, price, description } = food;
+      api
+        .post('/foods', {
+          name,
+          image,
+          description,
+          price,
+          available: true,
+        })
+        .then(response => {
+          setFoods([...foods, response.data]);
+        });
     } catch (err) {
       console.log(err);
     }
@@ -46,11 +59,31 @@ const Dashboard: React.FC = () => {
   async function handleUpdateFood(
     food: Omit<IFoodPlate, 'id' | 'available'>,
   ): Promise<void> {
-    // TODO UPDATE A FOOD PLATE ON THE API
+    const { name, image, price, description } = food;
+    api
+      .put(`/foods/${editingFood.id}`, {
+        id: editingFood.id,
+        name,
+        image,
+        description,
+        price,
+        available: editingFood.available,
+      })
+      .then(response => {
+        const data = foods;
+        const dataIndex = data.findIndex(f => f.id === editingFood.id);
+        data[dataIndex] = response.data;
+        setFoods([...data]);
+      });
   }
 
   async function handleDeleteFood(id: number): Promise<void> {
-    // TODO DELETE A FOOD PLATE FROM THE API
+    api.delete(`/foods/${id}`).then(response => {
+      const data = foods;
+      const dataIndex = data.findIndex(f => f.id === editingFood.id);
+      data.splice(dataIndex, 1);
+      setFoods([...data]);
+    });
   }
 
   function toggleModal(): void {
@@ -62,7 +95,8 @@ const Dashboard: React.FC = () => {
   }
 
   function handleEditFood(food: IFoodPlate): void {
-    // TODO SET THE CURRENT EDITING FOOD ID IN THE STATE
+    setEditingFood(food);
+    toggleEditModal();
   }
 
   return (
